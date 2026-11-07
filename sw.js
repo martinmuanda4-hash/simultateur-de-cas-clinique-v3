@@ -1,7 +1,7 @@
 "use strict";
 
 // Bump this version whenever you change any cached file.
-const CACHE_NAME = "cas-zero-v1";
+const CACHE_NAME = "cas-zero-v2";
 const APP_SHELL = [
   "./",
   "index.html",
