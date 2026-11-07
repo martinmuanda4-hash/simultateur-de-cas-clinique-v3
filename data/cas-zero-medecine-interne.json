@@ -32,7 +32,7 @@
       "aide": "N'oubliez pas de vérifier les constantes vitales et de faire un examen neurologique complet (raideur de nuque, score de Glasgow)."
     },
     "etape3_paraclinique": {
-      "titre": "Bilan Paraclinique",
+      "titre": "Bilans Paraclinique",
       "question": "Quels examens complémentaires demandez-vous en urgence ?",
       "examensValides": {
         "ponction_lombaire": {
