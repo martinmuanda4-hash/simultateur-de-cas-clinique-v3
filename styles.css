@@ -85,6 +85,46 @@ body {
   transition: width .5s ease;
 }
 
+/* ---------- Vital signs monitor ---------- */
+.monitor { background: #0b1220; border-top: 2px solid #16233f; }
+.monitor-inner {
+  max-width: 760px; margin: 0 auto; padding: 6px 14px;
+  display: flex; align-items: center; gap: 14px;
+}
+.monitor-ecg { flex: 1 1 140px; min-width: 90px; height: 46px; }
+.monitor-ecg canvas { display: block; width: 100%; height: 100%; }
+.monitor-values { display: flex; gap: 14px; flex: 0 0 auto; }
+.monitor-cell { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.monitor-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .06em;
+  color: var(--vital-color); text-transform: uppercase;
+}
+.monitor-value {
+  display: inline-block; font-size: 20px; font-weight: 800; color: var(--vital-color);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums; transform-origin: left center;
+}
+.monitor-value.beat { animation: beat .35s ease; }
+.monitor-unit { font-size: 9px; color: #94a3b8; }
+.monitor.alarm { animation: alarm .5s ease-in-out infinite alternate; }
+@keyframes beat { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes alarm {
+  from { box-shadow: inset 0 0 0 3px rgba(239, 68, 68, 0); }
+  to { box-shadow: inset 0 0 0 3px rgba(239, 68, 68, .95); background: #2a0b0b; }
+}
+
+/* ---------- Case overview (intro) ---------- */
+.overview {
+  text-align: left; margin: 18px 0; padding: 16px;
+  background: #f8fafc; border: 2px solid var(--line); border-radius: var(--radius);
+}
+.overview h2 { margin: 0 0 6px; font-size: 20px; }
+.overview-desc { margin: 0 0 14px; color: var(--muted); font-weight: 600; line-height: 1.45; }
+.overview-grid { display: grid; grid-template-columns: minmax(120px, 190px) 1fr; gap: 12px 16px; }
+.overview-label { font-weight: 800; color: var(--blue-dark); }
+.overview-value { line-height: 1.5; }
+.overview-vitals div { padding: 1px 0; }
+
 /* ---------- Layout ---------- */
 .stage { max-width: 760px; margin: 0 auto; padding: 18px 14px 40px; }
 
@@ -196,7 +236,7 @@ body {
 .error-card { text-align: center; color: var(--red-dark); font-weight: 700; }
 
 /* ---------- Toasts ---------- */
-.toast-layer { position: fixed; top: 76px; right: 14px; z-index: 40; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.toast-layer { position: fixed; top: 150px; right: 14px; z-index: 40; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
 .toast {
   font-weight: 900; font-size: 18px; padding: 6px 14px; border-radius: 999px;
   color: #fff; animation: toast 1.6s ease forwards;
@@ -226,6 +266,13 @@ body {
   .topbar-inner { padding: 8px 10px; gap: 8px; }
   .score { padding: 5px 9px; }
   .score-label { display: none; }
+  .monitor-inner { flex-wrap: wrap; padding: 4px 10px 6px; gap: 2px; }
+  .monitor-ecg { flex: 1 1 100%; height: 26px; }
+  .monitor-values { width: 100%; justify-content: space-between; gap: 6px; }
+  .monitor-value { font-size: 16px; }
+  .overview-grid { grid-template-columns: 1fr; gap: 2px; }
+  .overview-label { margin-top: 10px; }
+  .toast-layer { top: 190px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
