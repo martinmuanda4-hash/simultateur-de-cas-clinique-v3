@@ -1,1 +1,177 @@
+{
+  "id": "cas-zero-medecine-interne",
+  "titre": "Alerte aux Urgences : Fléchissement de la conscience",
+  "specialite": "Médecine Interne",
+  "scoreInitial": 100,
+  "etapes": {
+    "etape1_anamnese": {
+      "titre": "Anamnèse et Histoire",
+      "presentationInitiale": "Patiente de 29 ans, emmenée par sa famille pour fléchissement de l'état de conscience. Sans antécédents morbides connus.",
+      "reponsesAttendues": {
+        "motsCles": ["debut", "histoire", "symptomes", "cepha", "medicament", "ains", "fievre", "agitation"],
+        "revelationProgressive": "L'histoire remonte à 5 jours par des céphalées pour lesquelles la patiente s'est automédiquée avec des AINS. L'évolution a été marquée par l'aggravation des céphalées, une fièvre modérée sans horaires précis et une agitation. Elle a reçu du midazolam à domicile avant son transfert. Pas de vomissements, pas de convulsions."
+      },
+      "aide": "Demandez à la famille comment la maladie a débuté ou s'il y a eu une prise de médicaments à domicile."
+    },
+    "etape2_examen_physique": {
+      "titre": "Examen Physique",
+      "constantes": {
+        "tension": "112/76 mmhg",
+        "frequenceCardiaque": "86 bpm",
+        "frequenceRespiratoire": "20 cpm",
+        "saturation": "97% en air ambiant",
+        "glycemieCapillaire": "110 mg/dl"
+      },
+      "examenGeneral": "Conjonctives palpébrales bien colorées, conjonctives bulbaires anictériques. Aires ganglionnaires superficielles libres. Hydratation : muqueuse buccale et langue humides, pas de pli cutané.",
+      "examenSystemes": "Cœur : bruits cardiaques audibles et réguliers à 79 bpm. Poumons : murmure vésiculaire pur. Abdomen : non ballonné, souple, dépressible sans organomégalie. Membres inférieurs : eutrophiques sans œdèmes.",
+      "examenNeurologique": {
+        "demandeRequise": ["neurologique", "neuro", "glasgow", "nuque", "raideur"],
+        "resultats": "Patiente en coma, agitée avec un score de Glasgow à 12/15, nuque raide, signe de Brudzinski négatif.",
+        "malusSiOubli": 10
+      },
+      "aide": "N'oubliez pas de vérifier les constantes vitales et de faire un examen neurologique complet (raideur de nuque, score de Glasgow)."
+    },
+    "etape3_paraclinique": {
+      "titre": "Bilan Paraclinique",
+      "question": "Quels examens complémentaires demandez-vous en urgence ?",
+      "examensValides": {
+        "ponction_lombaire": {
+          "motsCles": ["pl", "ponction", "lombaire", "lcr"],
+          "resultat": "LCR clair, coulant goutte à goutte. Cytologie : 57 éléments/mm³ (N 72%, L 28%). Biochimie : protéines à 19,32 mg/dl, glucose à 65,9 mg/dl (glycémie concomitante à 124 mg/dl)."
+        },
+        "goutte_epaisse": {
+          "motsCles": ["ge", "goutte", "epaisse", "frottis", "palu"],
+          "resultat": "Goutte épaisse : Positive à Plasmodium falciparum."
+        }
+      },
+      "malusExamenInutile": 10,
+      "aide": "Face à un syndrome méningé fébrile avec troubles de la conscience en zone d'endémie, deux examens invasifs et biologiques sont prioritaires."
+    },
+    "etape4_diagnostic": {
+      "titre": "Poser le Diagnostic",
+      "question": "Quel est votre diagnostic précis ?",
+      "diagnosticsAttendus": [
+        {
+          "nom": "Méningo-encéphalite",
+          "points": 10,
+          "motsCles": ["meningo", "encephalite", "meningite", "meninge"]
+        },
+        {
+          "nom": "Paludisme grave",
+          "points": 10,
+          "motsCles": ["paludisme", "palu", "plasmodium", "malaria", "neuropalu"]
+        }
+      ],
+      "aide": "Il y a une double atteinte. L'une est liée au LCR cellulaire, l'autre à la positivité de la goutte épaisse avec critère neurologique."
+    },
+    "etape5_traitement": {
+      "titre": "Prise en Charge Thérapeutique",
+      "traitementsObligatoires": ["artisunate", "quinine", "ceftriaxone", "antibiotique"],
+      "groupesTraitement": [
+        {
+          "libelle": "Antipaludique",
+          "motsCles": ["artisunate", "artesunate", "artesunat", "quinine"]
+        },
+        {
+          "libelle": "Antibiotique",
+          "motsCles": ["ceftriaxone", "antibiotique", "antibio", "rocephine"]
+        }
+      ],
+      "erreursFatales": {
+        "motsCles": ["midazolam", "diazepam", "sedation", "sedatif", "ignorer pl"],
+        "punition": 30,
+        "message": "Erreur fatale : Ré-administrer des sédatifs sans contrôle des voies aériennes ou ignorer la suspicion de méningite bactérienne aggrave immédiatement le patient."
+      }
+    },
+    "etape6_debriefing": {
+      "titre": "Débriefing Pédagogique",
+      "pointsCles": [
+        "Piège des AINS : L'automédication a masqué l'évolution initiale de l'infection.",
+        "Danger du Midazolam : Donner un sédatif à domicile sur un cerveau en souffrance a aggravé le fléchissement de la conscience.",
+        "Règle d'or : Une goutte épaisse positive n'exclut jamais une méningite bactérienne ou virale associée (co-infection)."
+      ]
+    }
+  },
+  "interface": {
+    "nomApp": "Cas Zéro",
+    "sousTitre": "Simulateur de cas cliniques",
+    "accroche": "Interrogez, examinez, prescrivez. Chaque décision compte sur votre score.",
+    "boutonCommencer": "Commencer le cas",
+    "boutonEnvoyer": "Envoyer",
+    "boutonAide": "Besoin d'aide ?",
+    "boutonContinuer": "Continuer",
+    "boutonRejouer": "Rejouer le cas",
+    "boutonVoirReponse": "Voir la réponse",
+    "labelScore": "Score",
+    "labelMeilleurScore": "Meilleur score",
+    "labelScoreFinal": "Score final",
+    "labelEtape": "Étape",
+    "etapesCourtes": ["Anamnèse", "Examen Physique", "Paraclinique", "Diagnostic", "Traitement", "Débriefing"],
+    "placeholders": {
+      "etape1_anamnese": "Posez une question à la famille…",
+      "etape2_examen_physique": "Quel examen réalisez-vous ?",
+      "etape3_paraclinique": "Ex. : les examens que vous demandez…",
+      "etape4_diagnostic": "Votre diagnostic…",
+      "etape5_traitement": "Votre prise en charge…"
+    },
+    "consignes": {
+      "etape1_anamnese": "Interrogez la famille pour reconstituer l'histoire de la maladie.",
+      "etape2_examen_physique": "Les constantes et l'examen des systèmes sont disponibles. Demandez l'examen qui manque.",
+      "etape3_paraclinique": "Quels examens complémentaires demandez-vous en urgence ?",
+      "etape4_diagnostic": "Quel est votre diagnostic précis ?",
+      "etape5_traitement": "Décrivez votre prise en charge thérapeutique."
+    },
+    "libellesConstantes": {
+      "tension": "Tension",
+      "frequenceCardiaque": "Fréq. cardiaque",
+      "frequenceRespiratoire": "Fréq. respiratoire",
+      "saturation": "Saturation",
+      "glycemieCapillaire": "Glycémie capillaire"
+    },
+    "libellesBlocs": {
+      "constantes": "Constantes",
+      "examenGeneral": "Examen général",
+      "examenSystemes": "Examen des systèmes",
+      "examenNeurologique": "Examen neurologique",
+      "nonRealise": "Non réalisé"
+    },
+    "libellesExamens": {
+      "ponction_lombaire": "Ponction lombaire",
+      "goutte_epaisse": "Goutte épaisse"
+    },
+    "libellesMessages": {
+      "famille": "Famille",
+      "resultat": "Résultat",
+      "indice": "Indice"
+    },
+    "messages": {
+      "questionNonReconnue": "La famille ne sait pas répondre à cela. Reformulez : début, symptômes, médicaments, fièvre…",
+      "toutRevele": "Vous avez recueilli toute l'histoire. Vous pouvez passer à l'étape suivante.",
+      "examenNonReconnu": "Précisez l'examen à réaliser.",
+      "examenNeuroDemande": "Examen neurologique réalisé.",
+      "examenNeuroOublie": "Oubli de l'examen neurologique : -10 points.",
+      "examenDejaFait": "Cet examen a déjà été réalisé.",
+      "examenInutile": "Examen non prioritaire dans cette situation : -10 points.",
+      "bilanComplet": "Bilan paraclinique complet. Les deux examens prioritaires sont réalisés.",
+      "diagnosticTrouve": "Diagnostic validé :",
+      "diagnosticDejaTrouve": "Ce diagnostic est déjà validé.",
+      "diagnosticIncorrect": "Diagnostic non reconnu. Relisez les résultats du LCR et de la goutte épaisse.",
+      "diagnosticsComplets": "Les deux atteintes sont identifiées.",
+      "diagnosticsReponse": "Diagnostics attendus :",
+      "traitementTrouve": "Élément validé :",
+      "traitementPartiel": "Prise en charge incomplète. Vérifiez qu'elle couvre à la fois le paludisme et la méningite.",
+      "traitementComplet": "Prise en charge validée : antipaludique et antibiothérapie.",
+      "traitementNonReconnu": "Aucun traitement reconnu dans votre réponse.",
+      "aideUtilisee": "Indice utilisé : -2 points.",
+      "erreurFataleTitre": "Erreur fatale : -30 points"
+    },
+    "mentions": [
+      { "min": 90, "texte": "Excellent raisonnement clinique" },
+      { "min": 70, "texte": "Bonne prise en charge" },
+      { "min": 40, "texte": "À consolider" },
+      { "min": 0, "texte": "À revoir : rejouez le cas" }
+    ],
+    "erreurChargement": "Impossible de charger le cas clinique. Ouvrez l'application depuis un serveur web (Vercel ou npx serve)."
+  }
+}
 
