@@ -157,6 +157,222 @@ function renderTracker() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Vital signs monitor (always visible: ECG trace + live values)      */
+/* ------------------------------------------------------------------ */
+
+const MONITOR_REFRESH_MS = 2000;
+const ECG_SWEEP_SPEED = 90;   // pixels per second
+const ECG_ERASE_GAP = 14;     // pixels erased ahead of the moving trace
+const ALARM_DURATION_MS = 3500;
+const MAX_SPO2 = 100;
+const ECG_COLOR = "#22c55e";
+
+// Maximum drift (+/-) around the case values, one entry per parsed number.
+const VITAL_DRIFT = {
+  frequenceCardiaque: [3],
+  tension: [4, 3],
+  saturation: [1],
+  frequenceRespiratoire: [1],
+  glycemieCapillaire: [0] // capillary glucose is a spot measurement: it stays fixed
+};
+
+const VITAL_COLORS = {
+  frequenceCardiaque: "#22c55e",
+  tension: "#f87171",
+  saturation: "#38bdf8",
+  frequenceRespiratoire: "#facc15",
+  glycemieCapillaire: "#c084fc"
+};
+
+const monitor = {
+  built: false,
+  running: false,
+  vitals: {},   // key -> { base: number[], current: number[] }
+  fields: {},   // key -> value element
+  canvas: null,
+  ctx: null,
+  width: 0,
+  height: 0,
+  x: 0,
+  prevY: 0,
+  beatPhase: 0,
+  lastFrame: 0,
+  refreshTimer: null,
+  alarmTimer: null
+};
+
+function parseVitalNumbers(text) {
+  const found = String(text).match(/\d+(?:[.,]\d+)?/g) || [];
+  return found.map((value) => parseFloat(value.replace(",", ".")));
+}
+
+function buildMonitor() {
+  const config = state.ui.moniteur;
+  const constants = state.caseData.etapes.etape2_examen_physique.constantes;
+  const root = $("#monitor");
+  root.innerHTML = "";
+  root.setAttribute("aria-label", config.titre);
+
+  const inner = el("div", "monitor-inner");
+  const ecgBox = el("div", "monitor-ecg");
+  const canvas = document.createElement("canvas");
+  canvas.setAttribute("aria-hidden", "true");
+  ecgBox.append(canvas);
+
+  const values = el("div", "monitor-values");
+  monitor.vitals = {};
+  monitor.fields = {};
+  config.ordre.forEach((key) => {
+    const numbers = parseVitalNumbers(constants[key]);
+    if (numbers.length === 0) return;
+    monitor.vitals[key] = { base: numbers, current: numbers.slice() };
+
+    const cell = el("div", "monitor-cell");
+    cell.style.setProperty("--vital-color", VITAL_COLORS[key] || "#e5e7eb");
+    const value = el("span", "monitor-value");
+    cell.append(
+      el("span", "monitor-label", config.libelles[key] || key),
+      value,
+      el("span", "monitor-unit", config.unites[key] || "")
+    );
+    monitor.fields[key] = value;
+    values.append(cell);
+  });
+
+  inner.append(ecgBox, values);
+  root.append(inner);
+  monitor.canvas = canvas;
+  monitor.ctx = canvas.getContext("2d");
+  monitor.built = true;
+  renderMonitorValues();
+  window.addEventListener("resize", resizeEcg);
+}
+
+function renderMonitorValues() {
+  Object.keys(monitor.vitals).forEach((key) => {
+    monitor.fields[key].textContent = monitor.vitals[key].current.join("/");
+  });
+}
+
+/** Small random walk around the case values so the monitor feels alive. */
+function refreshVitals() {
+  Object.keys(monitor.vitals).forEach((key) => {
+    const vital = monitor.vitals[key];
+    const drift = VITAL_DRIFT[key] || [0];
+    vital.current = vital.current.map((value, index) => {
+      const limit = drift[index] || 0;
+      if (!limit) return value;
+      const step = Math.floor(Math.random() * 3) - 1;
+      let next = Math.max(vital.base[index] - limit, Math.min(vital.base[index] + limit, value + step));
+      if (key === "saturation") next = Math.min(next, MAX_SPO2);
+      return next;
+    });
+  });
+  renderMonitorValues();
+}
+
+function resizeEcg() {
+  const canvas = monitor.canvas;
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * ratio);
+  canvas.height = Math.round(rect.height * ratio);
+  monitor.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  monitor.width = rect.width;
+  monitor.height = rect.height;
+  monitor.x = 0;
+  monitor.prevY = rect.height * 0.72;
+}
+
+function gaussian(x, center, width) {
+  const delta = x - center;
+  return Math.exp(-(delta * delta) / (2 * width * width));
+}
+
+/** Synthetic P-QRS-T shape for a beat phase between 0 and 1 (R peak = 1). */
+function ecgSample(phase) {
+  return 0.12 * gaussian(phase, 0.16, 0.025)
+    - 0.15 * gaussian(phase, 0.285, 0.009)
+    + 1.0 * gaussian(phase, 0.31, 0.011)
+    - 0.28 * gaussian(phase, 0.34, 0.011)
+    + 0.3 * gaussian(phase, 0.58, 0.05);
+}
+
+function pulseHeartRate() {
+  const field = monitor.fields.frequenceCardiaque;
+  if (!field) return;
+  field.classList.remove("beat");
+  void field.offsetWidth; // restart animation
+  field.classList.add("beat");
+}
+
+function drawEcg(dt) {
+  const ctx = monitor.ctx;
+  const width = monitor.width;
+  const height = monitor.height;
+  const heartRate = monitor.vitals.frequenceCardiaque ? monitor.vitals.frequenceCardiaque.current[0] : 80;
+  const beatPeriod = 60 / heartRate;
+  const steps = Math.max(1, Math.round(dt * ECG_SWEEP_SPEED));
+  const phaseStep = (dt / steps) / beatPeriod;
+  const baseline = height * 0.72;
+  const amplitude = height * 0.62;
+
+  ctx.lineWidth = 2;
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = ECG_COLOR;
+
+  for (let i = 0; i < steps; i += 1) {
+    monitor.beatPhase += phaseStep;
+    if (monitor.beatPhase >= 1) {
+      monitor.beatPhase -= 1;
+      pulseHeartRate();
+    }
+    const y = baseline - ecgSample(monitor.beatPhase) * amplitude;
+    const nextX = monitor.x + 1;
+    if (nextX >= width) {
+      monitor.x = 0;
+      monitor.prevY = y;
+      ctx.clearRect(0, 0, ECG_ERASE_GAP, height);
+      continue;
+    }
+    ctx.clearRect(nextX, 0, ECG_ERASE_GAP, height);
+    ctx.beginPath();
+    ctx.moveTo(monitor.x, monitor.prevY);
+    ctx.lineTo(nextX, y);
+    ctx.stroke();
+    monitor.x = nextX;
+    monitor.prevY = y;
+  }
+}
+
+function ecgFrame(now) {
+  if (!monitor.running) return;
+  const dt = Math.min(Math.max((now - monitor.lastFrame) / 1000, 0), 0.1);
+  monitor.lastFrame = now;
+  if (monitor.ctx && monitor.width > 0 && dt > 0) drawEcg(dt);
+  requestAnimationFrame(ecgFrame);
+}
+
+function startMonitor() {
+  if (!monitor.built || monitor.running) return;
+  $("#monitor").hidden = false;
+  resizeEcg();
+  monitor.running = true;
+  monitor.lastFrame = performance.now();
+  monitor.refreshTimer = setInterval(refreshVitals, MONITOR_REFRESH_MS);
+  requestAnimationFrame(ecgFrame);
+}
+
+function flashMonitorAlarm() {
+  const root = $("#monitor");
+  root.classList.add("alarm");
+  clearTimeout(monitor.alarmTimer);
+  monitor.alarmTimer = setTimeout(() => root.classList.remove("alarm"), ALARM_DURATION_MS);
+}
+
+/* ------------------------------------------------------------------ */
 /* Step shell (card + chat + form + buttons)                          */
 /* ------------------------------------------------------------------ */
 
@@ -503,6 +719,7 @@ function renderTreatment(step) {
     // Fatal error always takes priority over correct items in the same answer.
     if (containsFatalKeyword(text, fatal.motsCles)) {
       changeScore(-fatal.punition);
+      flashMonitorAlarm();
       shell.addMessage("danger", fatal.message, ui.messages.erreurFataleTitre);
       return;
     }
@@ -630,24 +847,46 @@ function startCase() {
 function renderIntro() {
   const ui = state.ui;
   const data = state.caseData;
-  $("#topbar").hidden = true;
+  const intro = data.introduction;
+  const vitals = data.etapes.etape2_examen_physique.constantes;
+
+  // The top bar (progress, score, monitor) is visible from the very first screen.
+  state.score = data.scoreInitial;
+  state.stepIndex = -1;
+  $("#topbar").hidden = false;
+  renderTracker();
+  renderScore();
+  startMonitor();
 
   const stage = $("#stage");
   stage.innerHTML = "";
   const card = el("section", "card intro-card enter");
-  card.append(el("div", "badge", data.specialite));
-
-  const mascot = el("div", "mascot");
-  mascot.innerHTML =
-    '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">' +
-    '<path d="M12 4v16M4 12h16"/></svg>';
-  card.append(mascot);
-
   card.append(
+    el("div", "badge", data.specialite),
     el("h1", "intro-title", data.titre),
-    el("p", "intro-sub", ui.nomApp + " · " + ui.sousTitre),
-    el("p", "intro-hook", ui.accroche)
+    el("p", "intro-sub", ui.nomApp + " · " + ui.sousTitre)
   );
+
+  const overview = el("div", "overview");
+  overview.append(el("h2", null, intro.titre), el("p", "overview-desc", intro.description));
+
+  const grid = el("div", "overview-grid");
+  function addRow(label, valueNode) {
+    const value = el("div", "overview-value");
+    value.append(valueNode);
+    grid.append(el("div", "overview-label", label), value);
+  }
+  addRow(intro.libelles.lieu, document.createTextNode(intro.lieu));
+  addRow(intro.libelles.contexte, document.createTextNode(intro.contexte));
+  addRow(intro.libelles.motifConsultation, document.createTextNode(intro.motifConsultation));
+
+  const vitalsList = el("div", "overview-vitals");
+  Object.keys(vitals).forEach((key) => {
+    vitalsList.append(el("div", null, (ui.libellesConstantes[key] || key) + " : " + vitals[key]));
+  });
+  addRow(intro.libelles.constantes, vitalsList);
+  overview.append(grid);
+  card.append(overview);
 
   const start = el("button", "btn btn-primary btn-block", ui.boutonCommencer);
   start.type = "button";
@@ -678,6 +917,7 @@ async function init() {
   }
   document.title = state.ui.nomApp + " – " + state.ui.sousTitre;
   buildTracker();
+  buildMonitor();
   renderIntro();
 }
 
