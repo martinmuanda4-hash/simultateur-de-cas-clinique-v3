@@ -3,6 +3,19 @@
   "titre": "Alerte aux Urgences : Fléchissement de la conscience",
   "specialite": "Médecine Interne",
   "scoreInitial": 100,
+  "introduction": {
+    "titre": "Aperçu",
+    "description": "Les informations initiales du dossier sont disponibles : lieu de prise en charge, contexte de la consultation, motif de consultation et constantes vitales.",
+    "lieu": "Service des Urgences",
+    "contexte": "Patiente de 29 ans, emmenée par sa famille pour évaluation d'un fléchissement de l'état de conscience. Sans antécédents morbides connus.",
+    "motifConsultation": "Fléchissement de l'état de conscience",
+    "libelles": {
+      "lieu": "Lieu de prise en charge",
+      "contexte": "Contexte de la consultation",
+      "motifConsultation": "Motif de consultation",
+      "constantes": "Constantes"
+    }
+  },
   "etapes": {
     "etape1_anamnese": {
       "titre": "Anamnèse et Histoire",
@@ -32,7 +45,7 @@
       "aide": "N'oubliez pas de vérifier les constantes vitales et de faire un examen neurologique complet (raideur de nuque, score de Glasgow)."
     },
     "etape3_paraclinique": {
-      "titre": "Bilans Paraclinique",
+      "titre": "Bilan Paraclinique",
       "question": "Quels examens complémentaires demandez-vous en urgence ?",
       "examensValides": {
         "ponction_lombaire": {
@@ -139,6 +152,24 @@
       "ponction_lombaire": "Ponction lombaire",
       "goutte_epaisse": "Goutte épaisse"
     },
+    "moniteur": {
+      "titre": "Moniteur des signes vitaux",
+      "ordre": ["frequenceCardiaque", "tension", "saturation", "frequenceRespiratoire", "glycemieCapillaire"],
+      "libelles": {
+        "frequenceCardiaque": "FC",
+        "tension": "TA",
+        "saturation": "SpO₂",
+        "frequenceRespiratoire": "FR",
+        "glycemieCapillaire": "Glyc."
+      },
+      "unites": {
+        "frequenceCardiaque": "bpm",
+        "tension": "mmHg",
+        "saturation": "%",
+        "frequenceRespiratoire": "cpm",
+        "glycemieCapillaire": "mg/dl"
+      }
+    },
     "libellesMessages": {
       "famille": "Famille",
       "resultat": "Résultat",
@@ -174,4 +205,3 @@
     "erreurChargement": "Impossible de charger le cas clinique. Ouvrez l'application depuis un serveur web (Vercel ou npx serve)."
   }
 }
-
